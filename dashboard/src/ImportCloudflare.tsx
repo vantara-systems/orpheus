@@ -1,6 +1,10 @@
-import { Button, Table } from "@cloudflare/kumo"
+import { Button, Input, Table } from "@cloudflare/kumo"
 import { useEffect, useState } from "react"
 import { getJson } from "./api"
+import { AppShell } from "./components/AppShell"
+import { Panel } from "./components/Panel"
+import { SkeletonRow } from "./components/SkeletonRow"
+import { StatusPill } from "./components/StatusPill"
 
 type Zone = { id: string; name: string; status: string }
 type Worker = { account_id: string; account_name: string; name: string; url: string }
@@ -13,6 +17,15 @@ type Project = {
 type Result = { key: string; label: string; url: string; ok: boolean; error?: string }
 
 const workerKey = (worker: Worker) => `${worker.account_id}/${worker.name}`
+
+const CHIP_STYLE =
+  "inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-[#5b6573] bg-[#eef0f3] rounded-md border border-[#e6e9ee]"
+
+const ERROR_BOX_STYLE =
+  "rounded-md border border-[#e5a100] bg-[#fef9e7] p-3 mb-4 text-sm text-[#92400e]"
+
+const EMPTY_STATE_STYLE =
+  "py-16 px-4 text-center border-2 border-dashed border-[#e6e9ee] rounded-md bg-[#ffffff]"
 
 export default function ImportCloudflare() {
   const [zones, setZones] = useState<Zone[]>([])
@@ -54,7 +67,9 @@ export default function ImportCloudflare() {
       const available = zonesRes.value.zones.filter((zone) => !linked.has(zone.id))
       setZones(available)
       setSelected(new Set())
-      setUrls(Object.fromEntries(available.map((zone) => [zone.id, `https://${zone.name}/`])))
+      setUrls(
+        Object.fromEntries(available.map((zone) => [zone.id, `https://${zone.name}/`]))
+      )
     } else {
       setZones([])
       setError(String(zonesRes.reason))
@@ -69,7 +84,9 @@ export default function ImportCloudflare() {
       const available = workersRes.value.workers.filter((worker) => !linked.has(workerKey(worker)))
       setWorkers(available)
       setSelectedWorkers(new Set())
-      setWorkerUrls(Object.fromEntries(available.map((worker) => [workerKey(worker), worker.url])))
+      setWorkerUrls(
+        Object.fromEntries(available.map((worker) => [workerKey(worker), worker.url]))
+      )
     } else {
       setWorkers([])
       setWorkerError(String(workersRes.reason))
@@ -140,7 +157,7 @@ export default function ImportCloudflare() {
       const url = (workerUrls[key] || worker.url).trim()
       const label = `${worker.name} (${worker.account_name})`
       try {
-        if (!url) throw new Error("URL wajib diisi")
+        if (!url) throw new Error("URL is required")
         const res = await fetch("/api/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -166,189 +183,253 @@ export default function ImportCloudflare() {
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <a href="#/">← Overview</a>
-      <h1>Import dari Cloudflare</h1>
-      <p style={{ maxWidth: 720 }}>
-        Zone dan Worker yang sudah terhubung tidak ditampilkan. URL diisi otomatis—ubah jika
-        project berada di subdomain atau domain kustom. Project mulai dicek otomatis dalam ±10
-        detik.
-      </p>
-
-      {error && (
-        <div style={{ marginTop: 16, padding: 12, background: "#fff1f0", border: "1px solid #ffa39e" }}>
-          <strong>Gagal memuat zone:</strong> {error}
-          <div style={{ marginTop: 4 }}>
-            Pastikan <code>CLOUDFLARE_API_TOKEN</code> diset dan token punya permission Zone → Zone →
-            Read serta Zone → Analytics → Read.
+    <AppShell currentRoute="import">
+      <div className="space-y-6">
+        {/* Permissions info block */}
+        <Panel className="py-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-[#111111] mb-2">
+                Required Cloudflare API token permissions
+              </h2>
+              <p className="text-xs text-[#5b6573]">
+                The token needs these permissions to import zones and Workers.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className={CHIP_STYLE}>Zone → Zone → Read</span>
+              <span className={CHIP_STYLE}>Zone → Analytics → Read</span>
+              <span className={CHIP_STYLE}>Account → Workers Scripts → Read</span>
+              <span className={CHIP_STYLE}>Account Settings → Read</span>
+              <span className={CHIP_STYLE}>Account Analytics → Read</span>
+            </div>
           </div>
-        </div>
-      )}
+        </Panel>
 
-      {loading && <div>Memuat zone dan Worker…</div>}
-
-      {!loading && !error && zones.length === 0 && (
-        <div>Semua zone Cloudflare sudah terhubung, atau akun tidak punya zone.</div>
-      )}
-
-      {!loading && zones.length > 0 && (
-        <>
-          <div style={{ display: "flex", gap: 12, margin: "16px 0" }}>
-            <Button
-              variant="secondary"
-              onClick={() => setSelected(new Set(zones.map((zone) => zone.id)))}
-            >
-              Pilih semua
-            </Button>
-            <Button variant="secondary" onClick={() => setSelected(new Set())}>
-              Kosongkan
-            </Button>
-            <Button
-              variant="primary"
-              loading={importing}
-              disabled={chosen.length === 0}
-              onClick={runImport}
-            >
-              Import {chosen.length} zone
-            </Button>
+        {error && (
+          <div className={ERROR_BOX_STYLE}>
+            <strong className="font-medium">Failed to load zones:</strong> {error}
+            <div className="mt-1.5 text-xs text-[#92400e]">
+              Make sure CLOUDFLARE_API_TOKEN is set and has permission Zone → Zone → Read
+              and Zone → Analytics → Read.
+            </div>
           </div>
+        )}
 
-          <Table>
-            <Table.Header>
-              <Table.Row>
-                <Table.Head></Table.Head>
-                <Table.Head>Zone</Table.Head>
-                <Table.Head>Zone ID</Table.Head>
-                <Table.Head>URL health check</Table.Head>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {zones.map((zone) => (
-                <Table.Row key={zone.id}>
-                  <Table.Cell>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(zone.id)}
-                      onChange={() => toggle(zone.id)}
-                      aria-label={`Pilih ${zone.name}`}
-                    />
-                  </Table.Cell>
-                  <Table.Cell>{zone.name}</Table.Cell>
-                  <Table.Cell>
-                    <code>{zone.id}</code>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <input
-                      value={urls[zone.id] ?? ""}
-                      onChange={(e) =>
-                        setUrls((prev) => ({ ...prev, [zone.id]: e.target.value }))
-                      }
-                      style={{ width: "100%", padding: 6 }}
-                      aria-label={`URL untuk ${zone.name}`}
-                    />
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table>
-        </>
-      )}
-
-      <h2 style={{ marginTop: 32 }}>Workers</h2>
-      <p style={{ maxWidth: 720 }}>
-        Token perlu permission Account → Workers Scripts → Read, Account Settings → Read, dan
-        Account Analytics → Read. Analytics Worker disimpan sebagai request/error count per jam;
-        CPU time tidak dipakai karena bukan response time.
-      </p>
-
-      {workerError && (
-        <div style={{ marginTop: 16, padding: 12, background: "#fff1f0", border: "1px solid #ffa39e" }}>
-          <strong>Gagal memuat Worker:</strong> {workerError}
-        </div>
-      )}
-
-      {!loading && !workerError && workers.length === 0 && (
-        <div>Semua Worker sudah terhubung, atau akun tidak punya Worker.</div>
-      )}
-
-      {!loading && workers.length > 0 && (
-        <>
-          <div style={{ display: "flex", gap: 12, margin: "16px 0" }}>
-            <Button
-              variant="secondary"
-              onClick={() => setSelectedWorkers(new Set(workers.map(workerKey)))}
-            >
-              Pilih semua
-            </Button>
-            <Button variant="secondary" onClick={() => setSelectedWorkers(new Set())}>
-              Kosongkan
-            </Button>
-            <Button
-              variant="primary"
-              loading={importingWorkers}
-              disabled={chosenWorkers.length === 0}
-              onClick={runImportWorkers}
-            >
-              Import {chosenWorkers.length} Worker
-            </Button>
+        {loading ? (
+          <div className="space-y-6">
+            <SkeletonRow count={2} />
+            <SkeletonRow count={2} />
           </div>
+        ) : (
+          <div>
+            {!error && zones.length === 0 && (
+              <div className={EMPTY_STATE_STYLE}>
+                <div className="text-base font-semibold text-[#111111]">
+                  All zones are connected, or the account has no zones.
+                </div>
+              </div>
+            )}
 
-          <Table>
-            <Table.Header>
-              <Table.Row>
-                <Table.Head></Table.Head>
-                <Table.Head>Worker</Table.Head>
-                <Table.Head>Akun</Table.Head>
-                <Table.Head>URL health check</Table.Head>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {workers.map((worker) => {
-                const key = workerKey(worker)
-                return (
-                  <Table.Row key={key}>
-                    <Table.Cell>
-                      <input
-                        type="checkbox"
-                        checked={selectedWorkers.has(key)}
-                        onChange={() => toggleWorker(key)}
-                        aria-label={`Pilih ${worker.name}`}
-                      />
-                    </Table.Cell>
-                    <Table.Cell>{worker.name}</Table.Cell>
-                    <Table.Cell>{worker.account_name}</Table.Cell>
-                    <Table.Cell>
-                      <input
-                        value={workerUrls[key] ?? ""}
-                        placeholder="https://nama.akun.workers.dev/"
-                        onChange={(e) =>
-                          setWorkerUrls((prev) => ({ ...prev, [key]: e.target.value }))
-                        }
-                        style={{ width: "100%", padding: 6 }}
-                        aria-label={`URL untuk ${worker.name}`}
-                      />
-                    </Table.Cell>
+            {!error && zones.length > 0 && (
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setSelected(new Set(zones.map((z) => z.id)))}
+                    >
+                      Select all
+                    </Button>
+                    <Button variant="secondary" onClick={() => setSelected(new Set())}>
+                      Clear
+                    </Button>
+                  </div>
+                  <Button
+                    variant="primary"
+                    loading={importing}
+                    disabled={chosen.length === 0}
+                    onClick={runImport}
+                  >
+                    Import selected ({chosen.length})
+                  </Button>
+                </div>
+
+                <Panel>
+                  <Table>
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.Head></Table.Head>
+                        <Table.Head>Zone</Table.Head>
+                        <Table.Head className="font-mono text-sm">Zone ID</Table.Head>
+                        <Table.Head>URL health check</Table.Head>
+                      </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                      {zones.map((zone) => (
+                        <Table.Row key={zone.id}>
+                          <Table.Cell>
+                            <input
+                              type="checkbox"
+                              checked={selected.has(zone.id)}
+                              onChange={() => toggle(zone.id)}
+                              aria-label={`Select ${zone.name}`}
+                            />
+                          </Table.Cell>
+                          <Table.Cell>
+                            <div className="font-semibold text-[#111111]">{zone.name}</div>
+                            <div className="text-xs text-[#5b6573]">
+                              <StatusPill variant="neutral">Zone</StatusPill>
+                            </div>
+                          </Table.Cell>
+                          <Table.Cell className="font-mono text-sm text-[#111111] tabular-nums">
+                            {zone.id}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Input
+                              value={urls[zone.id] ?? ""}
+                              onChange={(e) =>
+                                setUrls((prev) => ({ ...prev, [zone.id]: e.target.value }))
+                              }
+                              aria-label={`URL for ${zone.name}`}
+                              className="text-sm font-mono tabular-nums"
+                            />
+                            <div className="mt-1 text-[10px] text-[#5b6573]">
+                              Checks start in ~10s
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
+                </Panel>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Workers panel */}
+        <h2 className="text-sm font-semibold text-[#111111] mt-8">Workers</h2>
+        <p className="text-xs text-[#5b6573] mb-4" style={{ maxWidth: 720 }}>
+          Token needs permission Account → Workers Scripts → Read, Account Settings → Read, and
+          Account Analytics → Read. Analytics Worker data is stored as request/error count per
+          hour; CPU time is not used because it is not response time.
+        </p>
+
+        {workerError && (
+          <div className={ERROR_BOX_STYLE}>
+            <strong className="font-medium">Failed to load Workers:</strong> {workerError}
+          </div>
+        )}
+
+        {!loading && !workerError && workers.length === 0 && (
+          <div className={EMPTY_STATE_STYLE}>
+            <div className="text-base font-semibold text-[#111111]">
+              All Workers are connected, or the account has no Workers.
+            </div>
+          </div>
+        )}
+
+        {!loading && workers.length > 0 && (
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setSelectedWorkers(new Set(workers.map(workerKey)))}
+                >
+                  Select all
+                </Button>
+                <Button variant="secondary" onClick={() => setSelectedWorkers(new Set())}>
+                  Clear
+                </Button>
+              </div>
+              <Button
+                variant="primary"
+                loading={importingWorkers}
+                disabled={chosenWorkers.length === 0}
+                onClick={runImportWorkers}
+              >
+                Import selected ({chosenWorkers.length})
+              </Button>
+            </div>
+
+            <Panel>
+              <Table>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.Head></Table.Head>
+                    <Table.Head>Worker</Table.Head>
+                    <Table.Head>Account</Table.Head>
+                    <Table.Head>URL health check</Table.Head>
                   </Table.Row>
-                )
-              })}
-            </Table.Body>
-          </Table>
-        </>
-      )}
+                </Table.Header>
+                <Table.Body>
+                  {workers.map((worker) => {
+                    const key = workerKey(worker)
+                    return (
+                      <Table.Row key={key}>
+                        <Table.Cell>
+                          <input
+                            type="checkbox"
+                            checked={selectedWorkers.has(key)}
+                            onChange={() => toggleWorker(key)}
+                            aria-label={`Select ${worker.name}`}
+                          />
+                        </Table.Cell>
+                        <Table.Cell>
+                          <div className="font-semibold text-[#111111]">{worker.name}</div>
+                          <div className="text-xs text-[#5b6573]">
+                            <StatusPill variant="neutral">Worker</StatusPill>
+                          </div>
+                        </Table.Cell>
+                        <Table.Cell>{worker.account_name}</Table.Cell>
+                        <Table.Cell>
+                          <Input
+                            value={workerUrls[key] ?? ""}
+                            onChange={(e) =>
+                              setWorkerUrls((prev) => ({ ...prev, [key]: e.target.value }))
+                            }
+                            aria-label={`URL for ${worker.name}`}
+                            placeholder="https://name.account.workers.dev/"
+                            className="text-sm font-mono tabular-nums"
+                          />
+                          <div className="mt-1 text-[10px] text-[#5b6573]">
+                            Checks start in ~10s
+                          </div>
+                        </Table.Cell>
+                      </Table.Row>
+                    )
+                  })}
+                </Table.Body>
+              </Table>
+            </Panel>
+          </div>
+        )}
 
-      {results.length > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <h2>Hasil import</h2>
-          <ul>
-            {results.map((result) => (
-              <li key={result.key}>
-                {result.ok ? "OK" : "Gagal"} — {result.label} ({result.url})
-                {result.error ? `: ${result.error}` : ""}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
+        {results.length > 0 && (
+          <Panel className="pt-4 pb-4">
+            <h2 className="text-sm font-semibold text-[#111111] mb-3">Import results</h2>
+            <ul className="space-y-1 text-sm">
+              {results.map((result) => (
+                <li key={result.key} className="flex items-start gap-2">
+                  <span
+                    className={`font-medium ${result.ok ? "text-[#0d6b43]" : "text-[#b42318]"}`}
+                  >
+                    {result.ok ? "OK" : "Failed"}
+                  </span>
+                  <span className="text-[#5b6573]">—</span>
+                  <span className="font-semibold text-[#111111]">{result.label}</span>
+                  <span className="text-[#5b6573]">({result.url})</span>
+                  {result.error && (
+                    <span className="text-[#b42318] ml-1">: {result.error}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        )}
+      </div>
+    </AppShell>
   )
 }
