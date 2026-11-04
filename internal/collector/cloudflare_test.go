@@ -95,6 +95,61 @@ func TestFetchMetricsForProjects(t *testing.T) {
 	}
 }
 
+func TestFetchCloudflareWorkerMetrics(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer test-token" {
+			t.Errorf("auth %q", r.Header.Get("Authorization"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"data":{"viewer":{"accounts":[{"workersInvocationsAdaptive":[{"sum":{"requests":100,"errors":5}},{"sum":{"requests":50,"errors":2}}]}]}}}`))
+	}))
+	defer server.Close()
+	orig := cloudflareEndpoint
+	cloudflareEndpoint = server.URL
+	defer func() { cloudflareEndpoint = orig }()
+
+	requests, errs, err := FetchCloudflareWorkerMetrics("test-token", "acc1", "api", time.Now().Add(-time.Hour))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if requests != 150 || errs != 7 {
+		t.Fatalf("got %d %d", requests, errs)
+	}
+}
+
+func TestFetchMetricsForProjectsWorkers(t *testing.T) {
+	db, err := storage.Open(filepath.Join(t.TempDir(), "orpheus.db"), filepath.Join("..", "..", "migrations", "0001_init.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	account, worker := "acc1", "api"
+	if _, err := storage.CreateProject(db, storage.Project{
+		Name: "worker", URL: "https://api.me.workers.dev", IsActive: true,
+		CloudflareAccountID: &account, CloudflareWorkerName: &worker,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"data":{"viewer":{"accounts":[{"workersInvocationsAdaptive":[{"sum":{"requests":40,"errors":1}}]}]}}}`))
+	}))
+	defer server.Close()
+	orig := cloudflareEndpoint
+	cloudflareEndpoint = server.URL
+	defer func() { cloudflareEndpoint = orig }()
+
+	metrics, err := FetchMetricsForProjects(db, "token", time.Now().Add(-time.Hour))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(metrics) != 1 || metrics[0].RequestsCount != 40 || metrics[0].ErrorCount != 1 {
+		t.Fatalf("unexpected metrics %+v", metrics)
+	}
+	if metrics[0].P50ResponseMS != nil || metrics[0].P99ResponseMS != nil {
+		t.Fatalf("workers should not store response percentiles: %+v", metrics[0])
+	}
+}
+
 func TestStartCloudflareCollector(t *testing.T) {
 	db, err := storage.Open(filepath.Join(t.TempDir(), "orpheus.db"), filepath.Join("..", "..", "migrations", "0001_init.sql"))
 	if err != nil {

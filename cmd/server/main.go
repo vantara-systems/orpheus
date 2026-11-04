@@ -22,18 +22,13 @@ func main() {
 	}
 	defer db.Close()
 
-	projects, err := storage.ListProjects(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	go collector.Start(ctx, db, projects, collector.Ping, cfg.FailureThreshold, cfg.TelegramBotToken, cfg.TelegramChatID, nil)
+	go collector.Run(ctx, db, collector.Ping, cfg.FailureThreshold, cfg.TelegramBotToken, cfg.TelegramChatID, nil, 10*time.Second)
 	go collector.StartCloudflareCollector(ctx, db, cfg.CloudflareAPIToken, time.Hour, cfg.TelegramBotToken, cfg.TelegramChatID, nil)
 
-	router := api.NewRouter(db)
+	router := api.NewRouter(db, cfg.CloudflareAPIToken)
 	srv := &http.Server{Addr: ":8080", Handler: router}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

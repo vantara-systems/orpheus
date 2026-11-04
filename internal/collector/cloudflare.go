@@ -86,6 +86,79 @@ func FetchCloudflareMetrics(token, zoneID string, since time.Time) (int, int, *i
 	return g.Count, g.Sum.Errors, p50, p99, nil
 }
 
+func FetchCloudflareWorkerMetrics(token, accountID, scriptName string, since time.Time) (int, int, error) {
+	if token == "" {
+		return 0, 0, fmt.Errorf("missing cloudflare token")
+	}
+	query := map[string]any{
+		"query": `query($accountTag: string, $scriptName: string, $datetimeStart: string, $datetimeEnd: string) {
+			viewer {
+				accounts(filter: {accountTag: $accountTag}) {
+					workersInvocationsAdaptive(limit: 1000, filter: {scriptName: $scriptName, datetime_geq: $datetimeStart, datetime_leq: $datetimeEnd}) {
+						sum { requests errors }
+					}
+				}
+			}
+		}`,
+		"variables": map[string]string{
+			"accountTag":    accountID,
+			"scriptName":    scriptName,
+			"datetimeStart": since.Format(time.RFC3339),
+			"datetimeEnd":   time.Now().UTC().Format(time.RFC3339),
+		},
+	}
+	body, err := json.Marshal(query)
+	if err != nil {
+		return 0, 0, err
+	}
+	req, err := http.NewRequest(http.MethodPost, cloudflareEndpoint, bytes.NewBuffer(body))
+	if err != nil {
+		return 0, 0, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		return 0, 0, fmt.Errorf("cloudflare API returned %s", resp.Status)
+	}
+	var result struct {
+		Data struct {
+			Viewer struct {
+				Accounts []struct {
+					Groups []struct {
+						Sum struct {
+							Requests int `json:"requests"`
+							Errors   int `json:"errors"`
+						} `json:"sum"`
+					} `json:"workersInvocationsAdaptive"`
+				} `json:"accounts"`
+			} `json:"viewer"`
+		} `json:"data"`
+		Errors []struct {
+			Message string `json:"message"`
+		} `json:"errors"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, 0, err
+	}
+	if len(result.Errors) > 0 {
+		return 0, 0, fmt.Errorf("cloudflare error: %s", result.Errors[0].Message)
+	}
+	var requests, errors int
+	for _, account := range result.Data.Viewer.Accounts {
+		for _, group := range account.Groups {
+			requests += group.Sum.Requests
+			errors += group.Sum.Errors
+		}
+	}
+	return requests, errors, nil
+}
+
 func FetchMetricsForProjects(db *sql.DB, token string, since time.Time) ([]storage.Metric, error) {
 	projects, err := storage.ListProjects(db)
 	if err != nil {
@@ -93,12 +166,22 @@ func FetchMetricsForProjects(db *sql.DB, token string, since time.Time) ([]stora
 	}
 	var metrics []storage.Metric
 	for _, p := range projects {
-		if p.CloudflareZoneID == nil || *p.CloudflareZoneID == "" {
+		var count, errs int
+		var p50, p99 *int
+		var err error
+		switch {
+		case p.CloudflareZoneID != nil && *p.CloudflareZoneID != "":
+			count, errs, p50, p99, err = FetchCloudflareMetrics(token, *p.CloudflareZoneID, since)
+		case p.CloudflareAccountID != nil && *p.CloudflareAccountID != "" &&
+			p.CloudflareWorkerName != nil && *p.CloudflareWorkerName != "":
+			// Workers analytics exposes CPU time, not response time, so only counts are stored.
+			count, errs, err = FetchCloudflareWorkerMetrics(token, *p.CloudflareAccountID, *p.CloudflareWorkerName, since)
+		default:
 			continue
 		}
-		count, errs, p50, p99, err := FetchCloudflareMetrics(token, *p.CloudflareZoneID, since)
 		if err != nil {
-			return nil, err
+			log.Printf("cloudflare metrics for project %d failed: %v", p.ID, err)
+			continue
 		}
 		metrics = append(metrics, storage.Metric{
 			ProjectID:     p.ID,

@@ -1,6 +1,7 @@
 import { Badge, LayerCard } from "@cloudflare/kumo"
 import { useEffect, useState } from "react"
 import { getJson } from "./api"
+import ImportCloudflare from "./ImportCloudflare"
 import Incidents from "./Incidents"
 import ProjectDetail from "./ProjectDetail"
 
@@ -32,6 +33,7 @@ function Overview() {
       <div style={{ display: "flex", gap: 16 }}>
         <a href="#/">Overview</a>
         <a href="#/incidents">Incidents</a>
+        <a href="#/import">Import Cloudflare</a>
       </div>
       <h1>Orpheus Overview</h1>
       <div
@@ -76,6 +78,7 @@ export default function App() {
   }, [])
 
   if (hash === "#/incidents") return <Incidents />
+  if (hash === "#/import") return <ImportCloudflare />
   const match = /^#\/projects\/(\d+)$/.exec(hash)
   if (match) return <ProjectDetail projectId={Number(match[1])} />
   return <Overview />
