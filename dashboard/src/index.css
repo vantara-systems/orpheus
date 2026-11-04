@@ -1,3 +1,38 @@
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
 @import "@cloudflare/kumo/styles/tailwind";
 @import "tailwindcss";
 @source "../node_modules/@cloudflare/kumo/dist/**/*.{js,jsx,ts,tsx}";
+
+:root {
+  --color-page: #f7f8fa;
+  --color-panel: #ffffff;
+  --color-border: #e6e9ee;
+  --color-text: #111111;
+  --color-muted: #5b6573;
+  --color-status-text-up: #0d6b43;
+  --color-status-text-down: #b42318;
+  --color-status-fill-up: #e6f4ec;
+  --color-status-fill-down: #fdecea;
+  --color-status-fill-neutral: #eef0f3;
+  --color-status-text-neutral: #3b4350;
+
+  font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+html, body {
+  background-color: #f7f8fa;
+  background-color: var(--color-page);
+  color: #111111;
+  color: var(--color-text);
+  font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  padding: 0;
+}
+
+code, kbd, samp, pre, .font-mono {
+  font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-variant-numeric: tabular-nums;
+}
