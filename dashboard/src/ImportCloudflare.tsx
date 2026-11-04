@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { getJson } from "./api"
 import { AppShell } from "./components/AppShell"
 import { Panel } from "./components/Panel"
+import { SkeletonRow } from "./components/SkeletonRow"
 import { StatusPill } from "./components/StatusPill"
 
 type Zone = { id: string; name: string; status: string }
@@ -215,90 +216,96 @@ export default function ImportCloudflare() {
           </div>
         )}
 
-        {loading && <div className="text-sm text-[#5b6573]">Loading zones and Workers…</div>}
-
-        {/* Zones panel */}
-        {!loading && !error && zones.length === 0 && (
-          <div className={EMPTY_STATE_STYLE}>
-            <div className="text-base font-semibold text-[#111111]">
-              All zones are connected, or the account has no zones.
-            </div>
+        {loading ? (
+          <div className="space-y-6">
+            <SkeletonRow count={2} />
+            <SkeletonRow count={2} />
           </div>
-        )}
-
-        {!loading && zones.length > 0 && (
-          <>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  onClick={() => setSelected(new Set(zones.map((z) => z.id)))}
-                >
-                  Select all
-                </Button>
-                <Button variant="secondary" onClick={() => setSelected(new Set())}>
-                  Clear
-                </Button>
+        ) : (
+          <div>
+            {!error && zones.length === 0 && (
+              <div className={EMPTY_STATE_STYLE}>
+                <div className="text-base font-semibold text-[#111111]">
+                  All zones are connected, or the account has no zones.
+                </div>
               </div>
-              <Button
-                variant="primary"
-                loading={importing}
-                disabled={chosen.length === 0}
-                onClick={runImport}
-              >
-                Import selected ({chosen.length})
-              </Button>
-            </div>
+            )}
 
-            <Panel>
-              <Table>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.Head></Table.Head>
-                    <Table.Head>Zone</Table.Head>
-                    <Table.Head className="font-mono text-sm">Zone ID</Table.Head>
-                    <Table.Head>URL health check</Table.Head>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {zones.map((zone) => (
-                    <Table.Row key={zone.id}>
-                      <Table.Cell>
-                        <input
-                          type="checkbox"
-                          checked={selected.has(zone.id)}
-                          onChange={() => toggle(zone.id)}
-                          aria-label={`Select ${zone.name}`}
-                        />
-                      </Table.Cell>
-                      <Table.Cell>
-                        <div className="font-semibold text-[#111111]">{zone.name}</div>
-                        <div className="text-xs text-[#5b6573]">
-                          <StatusPill variant="neutral">Zone</StatusPill>
-                        </div>
-                      </Table.Cell>
-                      <Table.Cell className="font-mono text-sm text-[#111111] tabular-nums">
-                        {zone.id}
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Input
-                          value={urls[zone.id] ?? ""}
-                          onChange={(e) =>
-                            setUrls((prev) => ({ ...prev, [zone.id]: e.target.value }))
-                          }
-                          aria-label={`URL for ${zone.name}`}
-                          className="text-sm font-mono tabular-nums"
-                        />
-                        <div className="mt-1 text-[10px] text-[#5b6573]">
-                          Checks start in ~10s
-                        </div>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
-            </Panel>
-          </>
+            {!error && zones.length > 0 && (
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setSelected(new Set(zones.map((z) => z.id)))}
+                    >
+                      Select all
+                    </Button>
+                    <Button variant="secondary" onClick={() => setSelected(new Set())}>
+                      Clear
+                    </Button>
+                  </div>
+                  <Button
+                    variant="primary"
+                    loading={importing}
+                    disabled={chosen.length === 0}
+                    onClick={runImport}
+                  >
+                    Import selected ({chosen.length})
+                  </Button>
+                </div>
+
+                <Panel>
+                  <Table>
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.Head></Table.Head>
+                        <Table.Head>Zone</Table.Head>
+                        <Table.Head className="font-mono text-sm">Zone ID</Table.Head>
+                        <Table.Head>URL health check</Table.Head>
+                      </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                      {zones.map((zone) => (
+                        <Table.Row key={zone.id}>
+                          <Table.Cell>
+                            <input
+                              type="checkbox"
+                              checked={selected.has(zone.id)}
+                              onChange={() => toggle(zone.id)}
+                              aria-label={`Select ${zone.name}`}
+                            />
+                          </Table.Cell>
+                          <Table.Cell>
+                            <div className="font-semibold text-[#111111]">{zone.name}</div>
+                            <div className="text-xs text-[#5b6573]">
+                              <StatusPill variant="neutral">Zone</StatusPill>
+                            </div>
+                          </Table.Cell>
+                          <Table.Cell className="font-mono text-sm text-[#111111] tabular-nums">
+                            {zone.id}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Input
+                              value={urls[zone.id] ?? ""}
+                              onChange={(e) =>
+                                setUrls((prev) => ({ ...prev, [zone.id]: e.target.value }))
+                              }
+                              aria-label={`URL for ${zone.name}`}
+                              className="text-sm font-mono tabular-nums"
+                            />
+                            <div className="mt-1 text-[10px] text-[#5b6573]">
+                              Checks start in ~10s
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
+                </Panel>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Workers panel */}
@@ -324,7 +331,7 @@ export default function ImportCloudflare() {
         )}
 
         {!loading && workers.length > 0 && (
-          <>
+          <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-2">
                 <Button
@@ -397,7 +404,7 @@ export default function ImportCloudflare() {
                 </Table.Body>
               </Table>
             </Panel>
-          </>
+          </div>
         )}
 
         {results.length > 0 && (

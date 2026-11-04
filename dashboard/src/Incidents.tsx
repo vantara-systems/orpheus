@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { getJson } from "./api"
 import { AppShell } from "./components/AppShell"
 import { Panel } from "./components/Panel"
+import { SkeletonRow } from "./components/SkeletonRow"
 import { StatRow } from "./components/StatRow"
 import { StatusPill } from "./components/StatusPill"
 
@@ -112,21 +113,7 @@ export default function Incidents() {
 
         <div className="border-t border-[#e6e9ee]">
           {loading ? (
-            <div className="divide-y divide-[#e6e9ee]">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
-                >
-                  <div className="w-44 space-y-2">
-                    <div className="h-5 bg-[#e6e9ee] animate-pulse rounded w-32" />
-                    <div className="h-4 bg-[#eef0f3] animate-pulse rounded w-20" />
-                  </div>
-                  <div className="h-8 bg-[#eef0f3] animate-pulse rounded w-full max-w-xl" />
-                  <div className="h-5 bg-[#e6e9ee] animate-pulse rounded w-16" />
-                </div>
-              ))}
-            </div>
+            <SkeletonRow count={3} />
           ) : incidents.length === 0 ? (
             <div className="py-16 px-4 text-center">
               <div className="text-base font-semibold text-[#111111]">No incidents</div>
