@@ -7,13 +7,15 @@ import (
 	"strings"
 )
 
-func NewRouter(db *sql.DB) http.Handler {
+func NewRouter(db *sql.DB, cloudflareToken string) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("/api/projects", handleProjects(db))
+	mux.HandleFunc("/api/cloudflare/zones", handleCloudflareZones(cloudflareToken))
+	mux.HandleFunc("/api/cloudflare/workers", handleCloudflareWorkers(cloudflareToken))
 	mux.HandleFunc("/api/projects/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPatch && !strings.Contains(strings.TrimPrefix(r.URL.Path, "/api/projects/"), "/") {
 			handleProject(db).ServeHTTP(w, r)

@@ -176,3 +176,51 @@ func TestStartContinuesOnAlertFailure(t *testing.T) {
 }
 
 func ptrInt(v int) *int { return &v }
+
+func TestRunPicksUpNewProjects(t *testing.T) {
+	db, err := storage.Open(filepath.Join(t.TempDir(), "orpheus.db"), filepath.Join("..", "..", "migrations", "0001_init.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	var count int32
+	fakePinger := func(url string, timeout time.Duration) storage.Check {
+		atomic.AddInt32(&count, 1)
+		return storage.Check{IsUp: true, StatusCode: ptrInt(200)}
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		Run(ctx, db, fakePinger, 3, "", "", nil, 50*time.Millisecond)
+		close(done)
+	}()
+
+	p, err := storage.CreateProject(db, storage.Project{Name: "Late", URL: "https://example.com", CheckIntervalSeconds: 1, IsActive: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		checks, err := storage.GetChecksByProject(db, p.ID, time.Time{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(checks) > 0 {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	cancel()
+	<-done
+
+	checks, err := storage.GetChecksByProject(db, p.ID, time.Time{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(checks) == 0 {
+		t.Fatal("expected project added after startup to be checked")
+	}
+}

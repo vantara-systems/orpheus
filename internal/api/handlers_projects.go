@@ -26,13 +26,16 @@ func handleProjects(db *sql.DB) http.HandlerFunc {
 				return
 			}
 			type resp struct {
-				ID               int64      `json:"id"`
-				Name             string     `json:"name"`
-				URL              string     `json:"url"`
-				IsUp             bool       `json:"is_up"`
-				LastCheckedAt    *time.Time `json:"last_checked_at"`
-				ResponseTimeMS   *int       `json:"response_time_ms"`
-				Uptime24hPercent float64    `json:"uptime_24h_percent"`
+				ID                   int64      `json:"id"`
+				Name                 string     `json:"name"`
+				URL                  string     `json:"url"`
+				CloudflareZoneID     *string    `json:"cloudflare_zone_id"`
+				CloudflareAccountID  *string    `json:"cloudflare_account_id"`
+				CloudflareWorkerName *string    `json:"cloudflare_worker_name"`
+				IsUp                 bool       `json:"is_up"`
+				LastCheckedAt        *time.Time `json:"last_checked_at"`
+				ResponseTimeMS       *int       `json:"response_time_ms"`
+				Uptime24hPercent     float64    `json:"uptime_24h_percent"`
 			}
 			out := make([]resp, 0, len(projects))
 			for _, p := range projects {
@@ -68,13 +71,16 @@ func handleProjects(db *sql.DB) http.HandlerFunc {
 					uptime = math.Round(uptime*10) / 10
 				}
 				out = append(out, resp{
-					ID:               p.ID,
-					Name:             p.Name,
-					URL:              p.URL,
-					IsUp:             isUp,
-					LastCheckedAt:    last,
-					ResponseTimeMS:   rt,
-					Uptime24hPercent: uptime,
+					ID:                   p.ID,
+					Name:                 p.Name,
+					URL:                  p.URL,
+					CloudflareZoneID:     p.CloudflareZoneID,
+					CloudflareAccountID:  p.CloudflareAccountID,
+					CloudflareWorkerName: p.CloudflareWorkerName,
+					IsUp:                 isUp,
+					LastCheckedAt:        last,
+					ResponseTimeMS:       rt,
+					Uptime24hPercent:     uptime,
 				})
 			}
 			w.Header().Set("Content-Type", "application/json")
@@ -84,6 +90,8 @@ func handleProjects(db *sql.DB) http.HandlerFunc {
 				Name                 *string `json:"name"`
 				URL                  *string `json:"url"`
 				CloudflareZoneID     *string `json:"cloudflare_zone_id"`
+				CloudflareAccountID  *string `json:"cloudflare_account_id"`
+				CloudflareWorkerName *string `json:"cloudflare_worker_name"`
 				CheckIntervalSeconds *int    `json:"check_interval_seconds"`
 				FailureThreshold     *int    `json:"failure_threshold"`
 				IsActive             *bool   `json:"is_active"`
@@ -99,6 +107,12 @@ func handleProjects(db *sql.DB) http.HandlerFunc {
 			p := storage.Project{Name: *req.Name, URL: *req.URL}
 			if req.CloudflareZoneID != nil {
 				p.CloudflareZoneID = req.CloudflareZoneID
+			}
+			if req.CloudflareAccountID != nil {
+				p.CloudflareAccountID = req.CloudflareAccountID
+			}
+			if req.CloudflareWorkerName != nil {
+				p.CloudflareWorkerName = req.CloudflareWorkerName
 			}
 			if req.CheckIntervalSeconds != nil {
 				p.CheckIntervalSeconds = *req.CheckIntervalSeconds
@@ -154,6 +168,8 @@ func handleProject(db *sql.DB) http.HandlerFunc {
 			Name                 *string `json:"name"`
 			URL                  *string `json:"url"`
 			CloudflareZoneID     *string `json:"cloudflare_zone_id"`
+			CloudflareAccountID  *string `json:"cloudflare_account_id"`
+			CloudflareWorkerName *string `json:"cloudflare_worker_name"`
 			CheckIntervalSeconds *int    `json:"check_interval_seconds"`
 			FailureThreshold     *int    `json:"failure_threshold"`
 			IsActive             *bool   `json:"is_active"`
@@ -170,6 +186,12 @@ func handleProject(db *sql.DB) http.HandlerFunc {
 		}
 		if req.CloudflareZoneID != nil {
 			existing.CloudflareZoneID = req.CloudflareZoneID
+		}
+		if req.CloudflareAccountID != nil {
+			existing.CloudflareAccountID = req.CloudflareAccountID
+		}
+		if req.CloudflareWorkerName != nil {
+			existing.CloudflareWorkerName = req.CloudflareWorkerName
 		}
 		if req.CheckIntervalSeconds != nil {
 			existing.CheckIntervalSeconds = *req.CheckIntervalSeconds
