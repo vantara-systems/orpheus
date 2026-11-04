@@ -14,6 +14,7 @@ func NewRouter(db *sql.DB, cloudflareToken string) http.Handler {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("/api/projects", handleProjects(db))
+	mux.HandleFunc("/api/uptime", handleUptime(db))
 	mux.HandleFunc("/api/cloudflare/zones", handleCloudflareZones(cloudflareToken))
 	mux.HandleFunc("/api/cloudflare/workers", handleCloudflareWorkers(cloudflareToken))
 	mux.HandleFunc("/api/projects/", func(w http.ResponseWriter, r *http.Request) {

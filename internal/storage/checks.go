@@ -97,3 +97,44 @@ func scanCheck(row rowScanner) (Check, error) {
 	}
 	return check, nil
 }
+
+type BucketStat struct {
+	BucketIndex  int
+	TotalChecks  int
+	FailedChecks int
+}
+
+func GetCheckBucketStats(db *sql.DB, projectID int64, start, end time.Time, bucketCount int) ([]BucketStat, error) {
+	windowDuration := end.Sub(start)
+	bucketSeconds := windowDuration.Seconds() / float64(bucketCount)
+	startUnix := start.Unix()
+
+	rows, err := db.Query(`
+		SELECT
+			MIN(? - 1, MAX(0, CAST((strftime('%s', substr(checked_at, 1, 19)) - ?) / ? AS INTEGER))) AS bucket_idx,
+			COUNT(*),
+			COALESCE(SUM(CASE WHEN is_up = 0 THEN 1 ELSE 0 END), 0)
+		FROM checks
+		WHERE project_id = ? AND checked_at >= ? AND checked_at <= ?
+		GROUP BY bucket_idx
+		ORDER BY bucket_idx`,
+		bucketCount, startUnix, bucketSeconds, projectID, start, end)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var stats []BucketStat
+	for rows.Next() {
+		var s BucketStat
+		if err := rows.Scan(&s.BucketIndex, &s.TotalChecks, &s.FailedChecks); err != nil {
+			return nil, err
+		}
+		stats = append(stats, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
