@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/hiroshiyoka/orpheus/internal/storage"
 )
@@ -102,5 +103,44 @@ func TestCloudflareWorkers(t *testing.T) {
 	}
 	if body.Workers[1].AccountName != "My Account" {
 		t.Fatalf("unexpected worker account: %+v", body.Workers[1])
+	}
+}
+
+func TestIncidentsProjectName(t *testing.T) {
+	db, err := storage.Open(filepath.Join(t.TempDir(), "orpheus.db"), filepath.Join("..", "..", "migrations", "0001_init.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	project, err := storage.CreateProject(db, storage.Project{Name: "api-gateway", URL: "https://api.example.com", IsActive: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Date(2026, 4, 11, 19, 57, 35, 0, time.UTC)
+	if _, err := storage.CreateIncident(db, storage.Incident{
+		ProjectID: project.ID, Type: "downtime", StartedAt: start,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	r := NewRouter(db, "")
+	req := httptest.NewRequest(http.MethodGet, "/api/incidents", nil)
+	rec := httptest.NewRecorder()
+	r.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d: %s", rec.Code, rec.Body.String())
+	}
+	var body []struct {
+		ID          int64     `json:"id"`
+		ProjectID   int64     `json:"project_id"`
+		ProjectName *string   `json:"project_name"`
+		Type        string    `json:"type"`
+		StartedAt   time.Time `json:"started_at"`
+	}
+	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
+	if len(body) != 1 || body[0].ProjectName == nil || *body[0].ProjectName != "api-gateway" {
+		t.Fatalf("expected project_name api-gateway, got %+v", body)
 	}
 }
