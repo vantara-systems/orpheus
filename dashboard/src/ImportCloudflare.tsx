@@ -186,7 +186,7 @@ export default function ImportCloudflare() {
     <AppShell currentRoute="import">
       <div className="space-y-6">
         {/* Permissions info block */}
-        <Panel className="py-4">
+        <Panel className="px-5 py-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold text-[#111111] mb-2">
@@ -408,7 +408,7 @@ export default function ImportCloudflare() {
         )}
 
         {results.length > 0 && (
-          <Panel className="pt-4 pb-4">
+          <Panel className="px-5 py-4 sm:px-6">
             <h2 className="text-sm font-semibold text-[#111111] mb-3">Import results</h2>
             <ul className="space-y-1 text-sm">
               {results.map((result) => (
