@@ -137,4 +137,3 @@ func GetCheckBucketStats(db *sql.DB, projectID int64, start, end time.Time, buck
 	}
 	return stats, nil
 }
-
