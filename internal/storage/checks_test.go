@@ -111,4 +111,3 @@ func TestGetCheckBucketStats(t *testing.T) {
 		t.Fatalf("unexpected bucket 2 stats: %+v", stats[2])
 	}
 }
-
