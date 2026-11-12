@@ -45,11 +45,8 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   if (error) {
     return (
       <AppShell currentRoute="detail">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className="rounded-md border border-[var(--color-warning)] bg-[var(--color-warning-bg)] p-3 text-sm text-[var(--color-warning-text)]">
-            Failed to load project: {error}
-          </div>
+        <div className="rounded-md border border-[var(--color-warning)] bg-[var(--color-warning-bg)] p-3 text-sm text-[var(--color-warning-text)]">
+          Failed to load project: {error}
         </div>
       </AppShell>
     )
@@ -58,12 +55,9 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   if (loading) {
     return (
       <AppShell currentRoute="detail">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
-            <div className="h-4 w-20 bg-[var(--color-border)] animate-pulse rounded" />
-            <span>Loading project…</span>
-          </div>
+        <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+          <div className="h-4 w-20 bg-[var(--color-border)] animate-pulse rounded" />
+          <span>Loading project…</span>
         </div>
       </AppShell>
     )
@@ -72,11 +66,8 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   if (!project) {
     return (
       <AppShell currentRoute="detail">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className={EMPTY_STATE_STYLE}>
-            <div className="text-base font-semibold text-[var(--color-text)]">Project not found</div>
-          </div>
+        <div className={EMPTY_STATE_STYLE}>
+          <div className="text-base font-semibold text-[var(--color-text)]">Project not found</div>
         </div>
       </AppShell>
     )

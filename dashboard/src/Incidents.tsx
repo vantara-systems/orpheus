@@ -90,11 +90,8 @@ export default function Incidents() {
   if (error) {
     return (
       <AppShell currentRoute="incidents">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className="rounded-[10px] border border-[var(--color-error-border)] bg-[var(--color-error-bg)] p-4 text-sm text-[var(--color-status-text-down)]">
-            Failed to load incidents: {error}
-          </div>
+        <div className="rounded-[10px] border border-[var(--color-error-border)] bg-[var(--color-error-bg)] p-4 text-sm text-[var(--color-error-text)]">
+          Failed to load incidents: {error}
         </div>
       </AppShell>
     )
