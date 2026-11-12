@@ -116,12 +116,12 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
         </Panel>
 
         {/* Uptime strip */}
-        <Panel className="py-4">
+        <Panel className="px-5 py-4 sm:px-6">
           <UptimeStrip projectName={project.name} uptimePercent={uptimePct} />
         </Panel>
 
         {/* Response time chart */}
-        <Panel>
+        <Panel className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
             <h2 className="text-sm font-semibold text-[var(--color-text)]">Response time · last 24h</h2>
             <p className="text-[10px] text-[var(--color-muted)]">
@@ -151,7 +151,7 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
         </Panel>
 
         {/* Error rate chart */}
-        <Panel>
+        <Panel className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
             <h2 className="text-sm font-semibold text-[var(--color-text)]">Error rate · last 7 days</h2>
             <p className="text-[10px] text-[var(--color-muted)]">
