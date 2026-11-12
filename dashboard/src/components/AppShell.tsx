@@ -68,31 +68,7 @@ export function AppShell({ currentRoute = "overview", breadcrumbLabel, children 
                 <Pulse size={19} weight="bold" />
               </a>
               <div className="min-w-0">
-                {currentRoute === "detail" ? (
-                  <nav aria-label="Breadcrumb" className="min-w-0">
-                    <ol className="flex items-center gap-1.5 text-sm">
-                      <li>
-                        <a
-                          href="#/"
-                          className="text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)] rounded"
-                        >
-                          Overview
-                        </a>
-                      </li>
-                      <li aria-hidden="true" className="text-[var(--color-muted)]">
-                        /
-                      </li>
-                      <li
-                        aria-current="page"
-                        className="truncate font-semibold text-[var(--color-text)]"
-                      >
-                        {breadcrumbLabel ?? "Project"}
-                      </li>
-                    </ol>
-                  </nav>
-                ) : (
-                  <h1 className="truncate text-sm font-semibold text-[var(--color-text)]">{meta.title}</h1>
-                )}
+                <h1 className="truncate text-sm font-semibold text-[var(--color-text)]">{meta.title}</h1>
                 <p className="truncate text-xs text-[var(--color-muted)]">{meta.subtitle}</p>
               </div>
             </div>
@@ -106,7 +82,32 @@ export function AppShell({ currentRoute = "overview", breadcrumbLabel, children 
           </nav>
         </header>
 
-        <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">{children}</main>
+        <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+          {currentRoute === "detail" && (
+            <nav aria-label="Breadcrumb" className="mb-4 min-w-0">
+              <ol className="flex items-center gap-1.5 text-sm">
+                <li>
+                  <a
+                    href="#/"
+                    className="text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)] rounded"
+                  >
+                    Overview
+                  </a>
+                </li>
+                <li aria-hidden="true" className="text-[var(--color-muted)]">
+                  /
+                </li>
+                <li
+                  aria-current="page"
+                  className="truncate font-medium text-[var(--color-text)]"
+                >
+                  {breadcrumbLabel ?? "Project"}
+                </li>
+              </ol>
+            </nav>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   )
