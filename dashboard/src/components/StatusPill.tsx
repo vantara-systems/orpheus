@@ -13,14 +13,14 @@ export function StatusPill({
   children,
   className = "",
 }: StatusPillProps) {
-  let styleClasses = "bg-[#eef0f3] text-[#3b4350]" // neutral default
+  let styleClasses = "bg-[var(--color-status-fill-neutral)] text-[var(--color-status-text-neutral)]" // neutral default
 
   if (variant === "up") {
-    styleClasses = "bg-[#e6f4ec] text-[#0d6b43]"
+    styleClasses = "bg-[var(--color-status-fill-up)] text-[var(--color-status-text-up)]"
   } else if (variant === "down") {
-    styleClasses = "bg-[#fdecea] text-[#b42318]"
+    styleClasses = "bg-[var(--color-status-fill-down)] text-[var(--color-status-text-down)]"
   } else if (variant === "degraded") {
-    styleClasses = "bg-[#fef3c7] text-[#92400e]"
+    styleClasses = "bg-[var(--color-warning-bg)] text-[var(--color-warning-text)]"
   }
 
   return (

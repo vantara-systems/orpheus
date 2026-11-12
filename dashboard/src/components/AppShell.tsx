@@ -11,14 +11,14 @@ export function AppShell({ currentRoute = "overview", children }: AppShellProps)
   const isDetail = currentRoute === "detail"
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] text-[#111111] font-sans antialiased">
+    <div className="min-h-screen bg-[var(--color-page)] text-[var(--color-text)] font-sans antialiased">
       {/* Header */}
-      <header className="border-b border-[#e6e9ee] bg-[#ffffff]">
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-panel)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <a
               href="#/"
-              className="text-lg font-semibold tracking-tight text-[#111111] hover:opacity-80 transition-opacity focus:outline-none focus:ring-1 focus:ring-gray-400 rounded"
+              className="text-lg font-semibold tracking-tight text-[var(--color-text)] hover:opacity-80 transition-opacity focus:outline-none focus:ring-1 focus:ring-[var(--color-muted)] rounded"
             >
               Orpheus
             </a>
@@ -28,7 +28,7 @@ export function AppShell({ currentRoute = "overview", children }: AppShellProps)
             {isDetail ? (
               <a
                 href="#/"
-                className="text-sm font-medium text-[#5b6573] hover:text-[#111111] transition-colors focus:outline-none focus:ring-1 focus:ring-gray-400 rounded py-2 px-1 flex items-center gap-1.5"
+                className="text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-muted)] rounded py-2 px-1 flex items-center gap-1.5"
               >
                 ← Overview
               </a>
@@ -36,30 +36,30 @@ export function AppShell({ currentRoute = "overview", children }: AppShellProps)
               <>
                 <a
                   href="#/"
-                  className={`text-sm py-4 transition-colors focus:outline-none focus:ring-1 focus:ring-gray-400 rounded ${
+                  className={`text-sm py-4 transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-muted)] rounded ${
                     currentRoute === "overview"
-                      ? "font-semibold text-[#111111] border-b-2 border-[#111111]"
-                      : "font-medium text-[#5b6573] hover:text-[#111111]"
+                      ? "font-semibold text-[var(--color-text)] border-b-2 border-[var(--color-text)]"
+                      : "font-medium text-[var(--color-muted)] hover:text-[var(--color-text)]"
                   }`}
                 >
                   Overview
                 </a>
                 <a
                   href="#/incidents"
-                  className={`text-sm py-4 transition-colors focus:outline-none focus:ring-1 focus:ring-gray-400 rounded ${
+                  className={`text-sm py-4 transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-muted)] rounded ${
                     currentRoute === "incidents"
-                      ? "font-semibold text-[#111111] border-b-2 border-[#111111]"
-                      : "font-medium text-[#5b6573] hover:text-[#111111]"
+                      ? "font-semibold text-[var(--color-text)] border-b-2 border-[var(--color-text)]"
+                      : "font-medium text-[var(--color-muted)] hover:text-[var(--color-text)]"
                   }`}
                 >
                   Incidents
                 </a>
                 <a
                   href="#/import"
-                  className={`text-sm py-4 transition-colors focus:outline-none focus:ring-1 focus:ring-gray-400 rounded ${
+                  className={`text-sm py-4 transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-muted)] rounded ${
                     currentRoute === "import"
-                      ? "font-semibold text-[#111111] border-b-2 border-[#111111]"
-                      : "font-medium text-[#5b6573] hover:text-[#111111]"
+                      ? "font-semibold text-[var(--color-text)] border-b-2 border-[var(--color-text)]"
+                      : "font-medium text-[var(--color-muted)] hover:text-[var(--color-text)]"
                   }`}
                 >
                   Import Cloudflare

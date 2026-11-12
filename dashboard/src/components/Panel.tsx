@@ -10,7 +10,7 @@ export function Panel({ children, className = "", id }: PanelProps) {
   return (
     <div
       id={id}
-      className={`bg-[#ffffff] border border-[#e6e9ee] rounded-[10px] shadow-xs overflow-hidden ${className}`}
+      className={`bg-[var(--color-panel)] border border-[var(--color-border)] rounded-[10px] shadow-xs overflow-hidden ${className}`}
     >
       {children}
     </div>

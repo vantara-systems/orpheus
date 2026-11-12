@@ -10,10 +10,10 @@ export interface UptimeStripProps {
 }
 
 const STATUS_COLORS: Record<BucketStatus, string> = {
-  up: "#1a9b5f",
-  degraded: "#e5a100",
-  down: "#d1382c",
-  no_data: "#d9e0e7",
+  up: "var(--color-chart-up)",
+  degraded: "var(--color-warning)",
+  down: "var(--color-chart-down)",
+  no_data: "var(--color-chart-nodata)",
 }
 
 const STATUS_LABELS: Record<BucketStatus, string> = {
@@ -111,18 +111,18 @@ export default function UptimeStrip({
               side="top"
               content={
                 <div className="py-1 px-1.5 text-xs text-left leading-tight">
-                  <div className="font-semibold text-gray-900">{timeRange}</div>
-                  <div className="text-gray-600">
-                    Status: <span className="font-medium text-gray-900">{statusLabel}</span>
+                  <div className="font-semibold text-[var(--color-text)]">{timeRange}</div>
+                  <div className="text-[var(--color-muted)]">
+                    Status: <span className="font-medium text-[var(--color-text)]">{statusLabel}</span>
                   </div>
-                  <div className="text-gray-500">{checksDesc}</div>
+                  <div className="text-[var(--color-muted)]">{checksDesc}</div>
                 </div>
               }
             >
               <span
                 tabIndex={0}
                 aria-label={`${timeRange}: ${statusLabel}, ${checksDesc}`}
-                className={`w-[9px] h-[30px] rounded-[2px] transition-opacity hover:opacity-80 focus:outline-none focus:ring-1 focus:ring-gray-400 cursor-pointer ${
+                className={`w-[9px] h-[30px] rounded-[2px] transition-opacity hover:opacity-80 focus:outline-none focus:ring-1 focus:ring-[var(--color-muted)] cursor-pointer ${
                   isOlderBucket ? "hidden md:inline-block" : "inline-block"
                 }`}
                 style={{ backgroundColor: color }}
