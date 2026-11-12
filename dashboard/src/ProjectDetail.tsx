@@ -13,7 +13,7 @@ type Check = { checked_at: string; response_time_ms: number | null }
 type Metric = { period_start: string; requests_count: number; error_count: number }
 
 const EMPTY_STATE_STYLE =
-  "py-16 px-4 text-center border-2 border-dashed border-[#e6e9ee] rounded-md bg-[#ffffff]"
+  "py-16 px-4 text-center border-2 border-dashed border-[var(--color-border)] rounded-md bg-[var(--color-panel)]"
 
 export default function ProjectDetail({ projectId }: { projectId: number }) {
   const [project, setProject] = useState<Project | null>(null)
@@ -45,11 +45,8 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   if (error) {
     return (
       <AppShell currentRoute="detail">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className="rounded-md border border-[#e5a100] bg-[#fef9e7] p-3 text-sm text-[#92400e]">
-            Failed to load project: {error}
-          </div>
+        <div className="rounded-md border border-[var(--color-warning)] bg-[var(--color-warning-bg)] p-3 text-sm text-[var(--color-warning-text)]">
+          Failed to load project: {error}
         </div>
       </AppShell>
     )
@@ -58,12 +55,9 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   if (loading) {
     return (
       <AppShell currentRoute="detail">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className="flex items-center gap-2 text-sm text-[#5b6573]">
-            <div className="h-4 w-20 bg-[#e6e9ee] animate-pulse rounded" />
-            <span>Loading project…</span>
-          </div>
+        <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+          <div className="h-4 w-20 bg-[var(--color-border)] animate-pulse rounded" />
+          <span>Loading project…</span>
         </div>
       </AppShell>
     )
@@ -72,11 +66,8 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   if (!project) {
     return (
       <AppShell currentRoute="detail">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className={EMPTY_STATE_STYLE}>
-            <div className="text-base font-semibold text-[#111111]">Project not found</div>
-          </div>
+        <div className={EMPTY_STATE_STYLE}>
+          <div className="text-base font-semibold text-[var(--color-text)]">Project not found</div>
         </div>
       </AppShell>
     )
@@ -98,14 +89,14 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   const responseText = project.response_time_ms !== null ? `${project.response_time_ms} ms` : "—"
 
   return (
-    <AppShell currentRoute="detail">
+    <AppShell currentRoute="detail" breadcrumbLabel={project.name}>
       <div className="space-y-6">
         {/* Header panel */}
         <Panel className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-base font-semibold text-[#111111]">{project.name}</h1>
-              <div className="mt-1 text-xs font-mono tabular-nums text-[#5b6573]">{project.url}</div>
+              <h1 className="text-base font-semibold text-[var(--color-text)]">{project.name}</h1>
+              <div className="mt-1 text-xs font-mono tabular-nums text-[var(--color-muted)]">{project.url}</div>
             </div>
             <StatusPill variant={project.is_up ? "up" : "down"}>
               {project.is_up ? "Up" : "Down"}
@@ -125,15 +116,15 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
         </Panel>
 
         {/* Uptime strip */}
-        <Panel className="py-4">
+        <Panel className="px-5 py-4 sm:px-6">
           <UptimeStrip projectName={project.name} uptimePercent={uptimePct} />
         </Panel>
 
         {/* Response time chart */}
-        <Panel>
+        <Panel className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
-            <h2 className="text-sm font-semibold text-[#111111]">Response time · last 24h</h2>
-            <p className="text-[10px] text-[#5b6573]">
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">Response time · last 24h</h2>
+            <p className="text-[10px] text-[var(--color-muted)]">
               {hasResponseData
                 ? `${responseTime.length} response time samples`
                 : "No response time data yet"}
@@ -141,12 +132,13 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
           </div>
           <TimeseriesChart
             echarts={echarts}
+            isDarkMode
             loading={!hasResponseData}
             data={[
               {
                 name: "Response time (ms)",
                 data: responseTime,
-                color: "#111111",
+                color: "#e7e9ee",
               },
             ]}
             yAxisName="ms"
@@ -159,30 +151,31 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
         </Panel>
 
         {/* Error rate chart */}
-        <Panel>
+        <Panel className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
-            <h2 className="text-sm font-semibold text-[#111111]">Error rate · last 7 days</h2>
-            <p className="text-[10px] text-[#5b6573]">
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">Error rate · last 7 days</h2>
+            <p className="text-[10px] text-[var(--color-muted)]">
               {hasErrorData ? `${errorRate.length} samples` : "No data"}
             </p>
           </div>
           {!hasErrorData ? (
-            <div className="py-16 px-4 text-center border-2 border-dashed border-[#e6e9ee] rounded-md bg-[#ffffff]">
-              <div className="text-base font-semibold text-[#111111]">
+            <div className="py-16 px-4 text-center border-2 border-dashed border-[var(--color-border)] rounded-md bg-[var(--color-panel)]">
+              <div className="text-base font-semibold text-[var(--color-text)]">
                 No Cloudflare analytics yet.
               </div>
-              <div className="mt-1 text-sm text-[#5b6573]">
+              <div className="mt-1 text-sm text-[var(--color-muted)]">
                 Connect a token with Account Analytics → Read to see error rates.
               </div>
             </div>
           ) : (
             <TimeseriesChart
               echarts={echarts}
+              isDarkMode
               data={[
                 {
                   name: "Error rate (%)",
                   data: errorRate,
-                  color: ChartPalette.categorical(1),
+                  color: ChartPalette.categorical(1, true),
                 },
               ]}
               yAxisName="%"

@@ -90,11 +90,8 @@ export default function Incidents() {
   if (error) {
     return (
       <AppShell currentRoute="incidents">
-        <div style={{ padding: 24 }}>
-          <a href="#/">← Overview</a>
-          <div className="rounded-[10px] border border-[#ffa39e] bg-[#fff1f0] p-4 text-sm text-[#b42318]">
-            Failed to load incidents: {error}
-          </div>
+        <div className="rounded-[10px] border border-[var(--color-error-border)] bg-[var(--color-error-bg)] p-4 text-sm text-[var(--color-error-text)]">
+          Failed to load incidents: {error}
         </div>
       </AppShell>
     )
@@ -111,13 +108,13 @@ export default function Incidents() {
           ]}
         />
 
-        <div className="border-t border-[#e6e9ee]">
+        <div className="border-t border-[var(--color-border)]">
           {loading ? (
             <SkeletonRow count={3} />
           ) : incidents.length === 0 ? (
             <div className="py-16 px-4 text-center">
-              <div className="text-base font-semibold text-[#111111]">No incidents</div>
-              <p className="mt-1 text-sm text-[#5b6573]">
+              <div className="text-base font-semibold text-[var(--color-text)]">No incidents</div>
+              <p className="mt-1 text-sm text-[var(--color-muted)]">
                 There are no open or resolved incidents to display.
               </p>
             </div>
@@ -136,17 +133,17 @@ export default function Incidents() {
                 {incidents.map((inc) => (
                   <Table.Row key={inc.id}>
                     <Table.Cell>
-                      <span className="font-semibold text-[#111111]">
+                      <span className="font-semibold text-[var(--color-text)]">
                         {inc.project_name ?? "Unknown project"}
                       </span>
                     </Table.Cell>
                     <Table.Cell>
                       <StatusPill variant="neutral">{inc.type}</StatusPill>
                     </Table.Cell>
-                    <Table.Cell className="font-mono text-sm text-[#5b6573]">
+                    <Table.Cell className="font-mono text-sm text-[var(--color-muted)]">
                       {formatStarted(inc.started_at)}
                     </Table.Cell>
-                    <Table.Cell className="font-mono text-sm text-[#111111] tabular-nums">
+                    <Table.Cell className="font-mono text-sm text-[var(--color-text)] tabular-nums">
                       {formatDuration(inc.started_at, inc.resolved_at)}
                     </Table.Cell>
                     <Table.Cell>

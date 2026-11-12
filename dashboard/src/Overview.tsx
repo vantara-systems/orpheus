@@ -12,14 +12,14 @@ export default function Overview() {
   return (
     <AppShell currentRoute="overview">
       {error && (
-        <div className="mb-6 rounded-[10px] border border-red-200 bg-red-50 p-4 flex items-center justify-between">
-          <div className="text-sm text-red-800">
+        <div className="mb-6 rounded-[10px] border border-[var(--color-error-border)] bg-[var(--color-error-bg)] p-4 flex items-center justify-between">
+          <div className="text-sm text-[var(--color-error-text)]">
             <span className="font-semibold">Failed to load overview data:</span> {error}
           </div>
           <button
             type="button"
             onClick={() => void refetch()}
-            className="px-3 py-1.5 text-xs font-medium rounded-md bg-white border border-red-300 text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
+            className="px-3 py-1.5 text-xs font-medium rounded-md bg-[var(--color-panel)] border border-[var(--color-error-border)] text-[var(--color-error-text)] hover:bg-[var(--color-error-bg)] focus:outline-none focus:ring-2 focus:ring-[var(--color-error-border)] cursor-pointer"
           >
             Retry
           </button>
@@ -50,26 +50,26 @@ export default function Overview() {
         />
 
         {/* Project Rows or Loading / Empty States */}
-        <div className="border-t border-[#e6e9ee]">
+        <div className="border-t border-[var(--color-border)]">
           {loading ? (
             <SkeletonRow count={3} />
           ) : projects.length === 0 ? (
             <div className="py-16 px-4 text-center">
-              <div className="text-base font-semibold text-[#111111]">No projects yet</div>
-              <p className="mt-1 text-sm text-[#5b6573]">
+              <div className="text-base font-semibold text-[var(--color-text)]">No projects yet</div>
+              <p className="mt-1 text-sm text-[var(--color-muted)]">
                 Start monitoring services by importing them from Cloudflare.
               </p>
               <div className="mt-5">
                 <a
                   href="#/import"
-                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[#111111] hover:bg-gray-800 rounded-md shadow-xs focus:outline-none focus:ring-2 focus:ring-gray-900 transition-colors"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-[var(--color-panel)] bg-[var(--color-text)] hover:opacity-90 rounded-md shadow-xs focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)] transition-opacity"
                 >
                   Import Cloudflare
                 </a>
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-[#e6e9ee]">
+            <div className="divide-y divide-[var(--color-border)]">
               {projects.map((project) => (
                 <ProjectRow key={project.id} project={project} />
               ))}
@@ -78,23 +78,23 @@ export default function Overview() {
         </div>
 
         {/* Footer Line: Legend */}
-        <div className="border-t border-[#e6e9ee] bg-[#fafbfc] px-5 py-3 text-xs text-[#5b6573] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-t border-[var(--color-border)] bg-[var(--color-hover)] px-5 py-3 text-xs text-[var(--color-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>Each bar is a 24 min window · grey = no data</div>
           <div className="flex items-center gap-4">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#1a9b5f]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-chart-up)]" />
               Up
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#e5a100]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-warning)]" />
               Degraded
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#d1382c]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-chart-down)]" />
               Down
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#d9e0e7]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-chart-nodata)]" />
               No data
             </span>
           </div>
@@ -117,23 +117,23 @@ function ProjectRow({ project }: { project: ProjectWithUptime }) {
       : "—"
 
   return (
-    <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 hover:bg-[#fafbfc] transition-colors">
+    <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 hover:bg-[var(--color-hover)] transition-colors">
       {/* Project name & response time */}
       <div className="w-full md:w-48 shrink-0 flex items-center justify-between md:block">
         <div>
           <a
             href={`#/projects/${project.id}`}
-            className="font-semibold text-sm sm:text-base text-[#111111] hover:underline focus:outline-none focus:ring-1 focus:ring-gray-400 rounded"
+            className="font-semibold text-sm sm:text-base text-[var(--color-text)] hover:underline focus:outline-none focus:ring-1 focus:ring-[var(--color-muted)] rounded"
           >
             {project.name}
           </a>
-          <div className="text-xs text-[#5b6573] mt-0.5">{responseText}</div>
+          <div className="text-xs text-[var(--color-muted)] mt-0.5">{responseText}</div>
         </div>
 
         {/* On mobile (<768px), display uptime % on the header row as well */}
         <div
           className="md:hidden font-semibold text-sm tabular-nums"
-          style={{ color: isPerfect ? "#0d6b43" : "#b42318" }}
+          style={{ color: isPerfect ? "var(--color-status-text-up)" : "var(--color-status-text-down)" }}
         >
           {uptimeText}
         </div>
@@ -151,7 +151,7 @@ function ProjectRow({ project }: { project: ProjectWithUptime }) {
       {/* Uptime % text right-aligned (desktop) */}
       <div
         className="hidden md:block w-20 text-right shrink-0 font-semibold text-sm sm:text-base tabular-nums"
-        style={{ color: isPerfect ? "#0d6b43" : "#b42318" }}
+        style={{ color: isPerfect ? "var(--color-status-text-up)" : "var(--color-status-text-down)" }}
       >
         {uptimeText}
       </div>

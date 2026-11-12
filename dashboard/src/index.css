@@ -1,38 +1,59 @@
-@import "@fontsource-variable/geist";
-@import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/ibm-plex-sans";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 @import "@cloudflare/kumo/styles/tailwind";
 @import "tailwindcss";
 @source "../node_modules/@cloudflare/kumo/dist/**/*.{js,jsx,ts,tsx}";
 
-:root {
-  --color-page: #f7f8fa;
-  --color-panel: #ffffff;
-  --color-border: #e6e9ee;
-  --color-text: #111111;
-  --color-muted: #5b6573;
-  --color-status-text-up: #0d6b43;
-  --color-status-text-down: #b42318;
-  --color-status-fill-up: #e6f4ec;
-  --color-status-fill-down: #fdecea;
-  --color-status-fill-neutral: #eef0f3;
-  --color-status-text-neutral: #3b4350;
+@theme {
+  --font-sans: "IBM Plex Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
 
-  font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+:root {
+  color-scheme: dark;
+
+  --color-page: #0b0d10;
+  --color-panel: #14171c;
+  --color-border: #262b33;
+  --color-text: #e7e9ee;
+  --color-muted: #98a1ad;
+  --color-hover: #1a1d23;
+  --color-accent: #f6821f;
+  --color-status-text-up: #5ed69a;
+  --color-status-text-down: #f87171;
+  --color-status-fill-up: #12301f;
+  --color-status-fill-down: #3a1618;
+  --color-status-fill-neutral: #232830;
+  --color-status-text-neutral: #c3cad4;
+  --color-warning: #e5a100;
+  --color-warning-bg: #2e2410;
+  --color-warning-text: #fbbf24;
+  --color-error-border: #7a2222;
+  --color-error-bg: #2e1414;
+  --color-error-text: #f87171;
+  --color-chart-up: #2fbf71;
+  --color-chart-degraded: #e5a100;
+  --color-chart-down: #f05252;
+  --color-chart-nodata: #2f343d;
+
+  font-family: "IBM Plex Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-variant-numeric: tabular-nums;
 }
 
 html, body {
-  background-color: #f7f8fa;
+  background-color: #0b0d10;
   background-color: var(--color-page);
-  color: #111111;
+  color: #e7e9ee;
   color: var(--color-text);
-  font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "IBM Plex Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-variant-numeric: tabular-nums;
   margin: 0;
   padding: 0;
 }
 
 code, kbd, samp, pre, .font-mono {
-  font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
   font-variant-numeric: tabular-nums;
 }

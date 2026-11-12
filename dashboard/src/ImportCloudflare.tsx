@@ -19,13 +19,13 @@ type Result = { key: string; label: string; url: string; ok: boolean; error?: st
 const workerKey = (worker: Worker) => `${worker.account_id}/${worker.name}`
 
 const CHIP_STYLE =
-  "inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-[#5b6573] bg-[#eef0f3] rounded-md border border-[#e6e9ee]"
+  "inline-flex items-center gap-1 px-2 py-1 text-xs font-mono text-[var(--color-muted)] bg-[var(--color-status-fill-neutral)] rounded-md border border-[var(--color-border)]"
 
 const ERROR_BOX_STYLE =
-  "rounded-md border border-[#e5a100] bg-[#fef9e7] p-3 mb-4 text-sm text-[#92400e]"
+  "rounded-md border border-[var(--color-warning)] bg-[var(--color-warning-bg)] p-3 mb-4 text-sm text-[var(--color-warning-text)]"
 
 const EMPTY_STATE_STYLE =
-  "py-16 px-4 text-center border-2 border-dashed border-[#e6e9ee] rounded-md bg-[#ffffff]"
+  "py-16 px-4 text-center border-2 border-dashed border-[var(--color-border)] rounded-md bg-[var(--color-panel)]"
 
 export default function ImportCloudflare() {
   const [zones, setZones] = useState<Zone[]>([])
@@ -189,10 +189,10 @@ export default function ImportCloudflare() {
         <Panel className="px-5 py-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold text-[#111111] mb-2">
+              <h2 className="text-sm font-semibold text-[var(--color-text)] mb-2">
                 Required Cloudflare API token permissions
               </h2>
-              <p className="text-xs text-[#5b6573]">
+              <p className="text-xs text-[var(--color-muted)]">
                 The token needs these permissions to import zones and Workers.
               </p>
             </div>
@@ -209,7 +209,7 @@ export default function ImportCloudflare() {
         {error && (
           <div className={ERROR_BOX_STYLE}>
             <strong className="font-medium">Failed to load zones:</strong> {error}
-            <div className="mt-1.5 text-xs text-[#92400e]">
+            <div className="mt-1.5 text-xs text-[var(--color-warning-text)]">
               Make sure CLOUDFLARE_API_TOKEN is set and has permission Zone → Zone → Read
               and Zone → Analytics → Read.
             </div>
@@ -225,7 +225,7 @@ export default function ImportCloudflare() {
           <div>
             {!error && zones.length === 0 && (
               <div className={EMPTY_STATE_STYLE}>
-                <div className="text-base font-semibold text-[#111111]">
+                <div className="text-base font-semibold text-[var(--color-text)]">
                   All zones are connected, or the account has no zones.
                 </div>
               </div>
@@ -277,12 +277,12 @@ export default function ImportCloudflare() {
                             />
                           </Table.Cell>
                           <Table.Cell>
-                            <div className="font-semibold text-[#111111]">{zone.name}</div>
-                            <div className="text-xs text-[#5b6573]">
+                            <div className="font-semibold text-[var(--color-text)]">{zone.name}</div>
+                            <div className="text-xs text-[var(--color-muted)]">
                               <StatusPill variant="neutral">Zone</StatusPill>
                             </div>
                           </Table.Cell>
-                          <Table.Cell className="font-mono text-sm text-[#111111] tabular-nums">
+                          <Table.Cell className="font-mono text-sm text-[var(--color-text)] tabular-nums">
                             {zone.id}
                           </Table.Cell>
                           <Table.Cell>
@@ -294,7 +294,7 @@ export default function ImportCloudflare() {
                               aria-label={`URL for ${zone.name}`}
                               className="text-sm font-mono tabular-nums"
                             />
-                            <div className="mt-1 text-[10px] text-[#5b6573]">
+                            <div className="mt-1 text-[10px] text-[var(--color-muted)]">
                               Checks start in ~10s
                             </div>
                           </Table.Cell>
@@ -309,8 +309,8 @@ export default function ImportCloudflare() {
         )}
 
         {/* Workers panel */}
-        <h2 className="text-sm font-semibold text-[#111111] mt-8">Workers</h2>
-        <p className="text-xs text-[#5b6573] mb-4" style={{ maxWidth: 720 }}>
+        <h2 className="text-sm font-semibold text-[var(--color-text)] mt-8">Workers</h2>
+        <p className="text-xs text-[var(--color-muted)] mb-4" style={{ maxWidth: 720 }}>
           Token needs permission Account → Workers Scripts → Read, Account Settings → Read, and
           Account Analytics → Read. Analytics Worker data is stored as request/error count per
           hour; CPU time is not used because it is not response time.
@@ -324,7 +324,7 @@ export default function ImportCloudflare() {
 
         {!loading && !workerError && workers.length === 0 && (
           <div className={EMPTY_STATE_STYLE}>
-            <div className="text-base font-semibold text-[#111111]">
+            <div className="text-base font-semibold text-[var(--color-text)]">
               All Workers are connected, or the account has no Workers.
             </div>
           </div>
@@ -378,8 +378,8 @@ export default function ImportCloudflare() {
                           />
                         </Table.Cell>
                         <Table.Cell>
-                          <div className="font-semibold text-[#111111]">{worker.name}</div>
-                          <div className="text-xs text-[#5b6573]">
+                          <div className="font-semibold text-[var(--color-text)]">{worker.name}</div>
+                          <div className="text-xs text-[var(--color-muted)]">
                             <StatusPill variant="neutral">Worker</StatusPill>
                           </div>
                         </Table.Cell>
@@ -394,7 +394,7 @@ export default function ImportCloudflare() {
                             placeholder="https://name.account.workers.dev/"
                             className="text-sm font-mono tabular-nums"
                           />
-                          <div className="mt-1 text-[10px] text-[#5b6573]">
+                          <div className="mt-1 text-[10px] text-[var(--color-muted)]">
                             Checks start in ~10s
                           </div>
                         </Table.Cell>
@@ -409,20 +409,20 @@ export default function ImportCloudflare() {
 
         {results.length > 0 && (
           <Panel className="px-5 py-4 sm:px-6">
-            <h2 className="text-sm font-semibold text-[#111111] mb-3">Import results</h2>
+            <h2 className="text-sm font-semibold text-[var(--color-text)] mb-3">Import results</h2>
             <ul className="space-y-1 text-sm">
               {results.map((result) => (
                 <li key={result.key} className="flex items-start gap-2">
                   <span
-                    className={`font-medium ${result.ok ? "text-[#0d6b43]" : "text-[#b42318]"}`}
+                    className={`font-medium ${result.ok ? "text-[var(--color-status-text-up)]" : "text-[var(--color-status-text-down)]"}`}
                   >
                     {result.ok ? "OK" : "Failed"}
                   </span>
-                  <span className="text-[#5b6573]">—</span>
-                  <span className="font-semibold text-[#111111]">{result.label}</span>
-                  <span className="text-[#5b6573]">({result.url})</span>
+                  <span className="text-[var(--color-muted)]">—</span>
+                  <span className="font-semibold text-[var(--color-text)]">{result.label}</span>
+                  <span className="text-[var(--color-muted)]">({result.url})</span>
                   {result.error && (
-                    <span className="text-[#b42318] ml-1">: {result.error}</span>
+                    <span className="text-[var(--color-status-text-down)] ml-1">: {result.error}</span>
                   )}
                 </li>
               ))}
