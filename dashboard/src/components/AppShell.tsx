@@ -95,7 +95,7 @@ export function AppShell({ currentRoute = "overview", breadcrumbLabel, children 
                   </a>
                 </li>
                 <li aria-hidden="true" className="text-[var(--color-muted)]">
-                  /
+                  &gt;
                 </li>
                 <li
                   aria-current="page"
