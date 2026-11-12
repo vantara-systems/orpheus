@@ -5,6 +5,7 @@ export type AppRoute = "overview" | "incidents" | "import" | "detail"
 
 export interface AppShellProps {
   currentRoute?: AppRoute
+  breadcrumbLabel?: string
   children: React.ReactNode
 }
 
@@ -21,7 +22,7 @@ const PAGE_META: Record<AppRoute, { title: string; subtitle: string }> = {
   detail: { title: "Project detail", subtitle: "Uptime, response time, and analytics" },
 }
 
-export function AppShell({ currentRoute = "overview", children }: AppShellProps) {
+export function AppShell({ currentRoute = "overview", breadcrumbLabel, children }: AppShellProps) {
   const activeRoute = currentRoute === "detail" ? "overview" : currentRoute
   const meta = PAGE_META[currentRoute]
 
@@ -67,18 +68,34 @@ export function AppShell({ currentRoute = "overview", children }: AppShellProps)
                 <Pulse size={19} weight="bold" />
               </a>
               <div className="min-w-0">
-                <h1 className="truncate text-sm font-semibold text-[var(--color-text)]">{meta.title}</h1>
+                {currentRoute === "detail" ? (
+                  <nav aria-label="Breadcrumb" className="min-w-0">
+                    <ol className="flex items-center gap-1.5 text-sm">
+                      <li>
+                        <a
+                          href="#/"
+                          className="text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)] rounded"
+                        >
+                          Overview
+                        </a>
+                      </li>
+                      <li aria-hidden="true" className="text-[var(--color-muted)]">
+                        /
+                      </li>
+                      <li
+                        aria-current="page"
+                        className="truncate font-semibold text-[var(--color-text)]"
+                      >
+                        {breadcrumbLabel ?? "Project"}
+                      </li>
+                    </ol>
+                  </nav>
+                ) : (
+                  <h1 className="truncate text-sm font-semibold text-[var(--color-text)]">{meta.title}</h1>
+                )}
                 <p className="truncate text-xs text-[var(--color-muted)]">{meta.subtitle}</p>
               </div>
             </div>
-            {currentRoute === "detail" && (
-              <a
-                href="#/"
-                className="shrink-0 text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)] rounded px-2 py-1"
-              >
-                ← Overview
-              </a>
-            )}
           </div>
 
           {/* Mobile nav */}

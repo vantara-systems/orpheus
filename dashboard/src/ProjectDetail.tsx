@@ -89,7 +89,7 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
   const responseText = project.response_time_ms !== null ? `${project.response_time_ms} ms` : "—"
 
   return (
-    <AppShell currentRoute="detail">
+    <AppShell currentRoute="detail" breadcrumbLabel={project.name}>
       <div className="space-y-6">
         {/* Header panel */}
         <Panel className="p-4 sm:p-6">
