@@ -1,4 +1,4 @@
-import { CloudArrowDown, Pulse, SquaresFour, WarningCircle } from "@phosphor-icons/react"
+import { CloudArrowDown, SquaresFour, WarningCircle } from "@phosphor-icons/react"
 import React from "react"
 
 export type AppRoute = "overview" | "incidents" | "import" | "detail"
@@ -33,15 +33,10 @@ export function AppShell({ currentRoute = "overview", breadcrumbLabel, children 
         <div className="flex h-16 items-center px-5 border-b border-[var(--color-border)]">
           <a
             href="#/"
-            className="flex items-center gap-3 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)]"
+            className="rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)]"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent)] text-[#0b0d10]">
-              <Pulse size={19} weight="bold" />
-            </span>
-            <span>
-              <span className="block text-sm font-semibold tracking-tight">Orpheus</span>
-              <span className="block text-xs text-[var(--color-muted)]">Service monitoring</span>
-            </span>
+            <span className="block text-sm font-semibold tracking-tight">Orpheus</span>
+            <span className="block text-xs text-[var(--color-muted)]">Service monitoring</span>
           </a>
         </div>
 
@@ -60,17 +55,9 @@ export function AppShell({ currentRoute = "overview", breadcrumbLabel, children 
         {/* Top bar */}
         <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-page)]">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3 min-w-0">
-              <a
-                href="#/"
-                className="md:hidden flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-accent)] text-[#0b0d10] focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)]"
-              >
-                <Pulse size={19} weight="bold" />
-              </a>
-              <div className="min-w-0">
-                <h1 className="truncate text-sm font-semibold text-[var(--color-text)]">{meta.title}</h1>
-                <p className="truncate text-xs text-[var(--color-muted)]">{meta.subtitle}</p>
-              </div>
+            <div className="min-w-0">
+              <h1 className="truncate text-sm font-semibold text-[var(--color-text)]">{meta.title}</h1>
+              <p className="truncate text-xs text-[var(--color-muted)]">{meta.subtitle}</p>
             </div>
           </div>
 
