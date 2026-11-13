@@ -1,4 +1,4 @@
-import { CloudArrowDown, SquaresFour, WarningCircle } from "@phosphor-icons/react"
+import { CloudArrowDown, SidebarSimple, SquaresFour, WarningCircle } from "@phosphor-icons/react"
 import React from "react"
 
 export type AppRoute = "overview" | "incidents" | "import" | "detail"
@@ -23,13 +23,18 @@ const PAGE_META: Record<AppRoute, { title: string; subtitle: string }> = {
 }
 
 export function AppShell({ currentRoute = "overview", breadcrumbLabel, children }: AppShellProps) {
+  const [sidebarOpen, setSidebarOpen] = React.useState(true)
   const activeRoute = currentRoute === "detail" ? "overview" : currentRoute
   const meta = PAGE_META[currentRoute]
 
   return (
     <div className="min-h-screen bg-[var(--color-page)] text-[var(--color-text)] font-sans antialiased">
       {/* Sidebar (desktop) */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 z-30 w-64 flex-col border-r border-[var(--color-border)] bg-[var(--color-panel)]">
+      <aside
+        className={`hidden md:flex fixed inset-y-0 left-0 z-30 w-64 flex-col border-r border-[var(--color-border)] bg-[var(--color-panel)] transition-transform duration-200 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex h-16 items-center px-5 border-b border-[var(--color-border)]">
           <a
             href="#/"
@@ -51,7 +56,24 @@ export function AppShell({ currentRoute = "overview", breadcrumbLabel, children 
         </div>
       </aside>
 
-      <div className="md:pl-64">
+      {/* Floating sidebar toggle (desktop) */}
+      <button
+        type="button"
+        onClick={() => setSidebarOpen((open) => !open)}
+        aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+        aria-expanded={sidebarOpen}
+        className={`hidden md:flex fixed top-4 z-40 h-9 w-9 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-muted)] shadow-sm transition-all duration-200 hover:text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-muted)] ${
+          sidebarOpen ? "left-[15rem]" : "left-3"
+        }`}
+      >
+        <SidebarSimple size={18} />
+      </button>
+
+      <div
+        className={`transition-[padding] duration-200 ${
+          sidebarOpen ? "md:pl-64" : "md:pl-14"
+        }`}
+      >
         {/* Top bar */}
         <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-page)]">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
