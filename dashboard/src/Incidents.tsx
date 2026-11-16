@@ -1,4 +1,4 @@
-import { Table } from "@cloudflare/kumo"
+import { ChartPalette, Table, TimeseriesChart } from "@cloudflare/kumo"
 import { useEffect, useState } from "react"
 import { getJson } from "./api"
 import { AppShell } from "./components/AppShell"
@@ -6,6 +6,7 @@ import { Panel } from "./components/Panel"
 import { SkeletonRow } from "./components/SkeletonRow"
 import { StatRow } from "./components/StatRow"
 import { StatusPill } from "./components/StatusPill"
+import echarts from "./echarts"
 
 type Incident = {
   id: number
@@ -62,6 +63,19 @@ function computeStats(incidents: Incident[]): IncidentsStats {
   return { openCount, resolved7d, longestOpen: longestOpenDuration(incidents) }
 }
 
+function incidentsPerDay(incidents: Incident[]): [number, number][] {
+  const day = 86_400_000
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const start = today.getTime() - 6 * day
+  const counts = Array.from({ length: 7 }, () => 0)
+  for (const incident of incidents) {
+    const index = Math.floor((Date.parse(incident.started_at) - start) / day)
+    if (index >= 0 && index < 7) counts[index]++
+  }
+  return counts.map((count, index) => [start + index * day, count])
+}
+
 export default function Incidents() {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [stats, setStats] = useState<IncidentsStats>({
@@ -97,6 +111,9 @@ export default function Incidents() {
     )
   }
 
+  const perDay = incidentsPerDay(incidents)
+  const weekTotal = perDay.reduce((sum, [, count]) => sum + count, 0)
+
   return (
     <AppShell currentRoute="incidents">
       <Panel>
@@ -107,6 +124,35 @@ export default function Incidents() {
             { label: "Longest open", value: stats.longestOpen ?? "—", loading },
           ]}
         />
+
+        <div className="border-t border-[var(--color-border)] px-5 py-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">Incidents · last 7 days</h2>
+            <p className="text-[10px] text-[var(--color-muted)]">
+              {loading ? "…" : `${weekTotal} in the last 7 days`}
+            </p>
+          </div>
+          <TimeseriesChart
+            echarts={echarts}
+            isDarkMode
+            type="bar"
+            loading={loading}
+            data={[
+              {
+                name: "Incidents",
+                data: perDay,
+                color: ChartPalette.semantic("Attention", true),
+              },
+            ]}
+            yAxisName="incidents"
+            yAxisMinInterval={1}
+            xAxisTickFormat={(value) =>
+              new Date(value).toLocaleDateString(undefined, { weekday: "short", day: "numeric" })
+            }
+            tooltipValueFormat={(value) => `${value} incident${value === 1 ? "" : "s"}`}
+            ariaDescription="Number of incidents started per day over the last 7 days"
+          />
+        </div>
 
         <div className="border-t border-[var(--color-border)]">
           {loading ? (
