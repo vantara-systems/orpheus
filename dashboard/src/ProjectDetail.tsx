@@ -1,4 +1,4 @@
-import { ChartPalette, TimeseriesChart } from "@cloudflare/kumo"
+import { Chart, ChartPalette, TimeseriesChart } from "@cloudflare/kumo"
 import { useEffect, useState } from "react"
 import { getJson } from "./api"
 import { AppShell } from "./components/AppShell"
@@ -9,13 +9,48 @@ import echarts from "./echarts"
 import type { Project } from "./types"
 import UptimeStrip from "./UptimeStrip"
 
-type Check = { checked_at: string; response_time_ms: number | null }
+type Check = { checked_at: string; status_code: number | null; response_time_ms: number | null }
 type Metric = {
   period_start: string
   requests_count: number
   error_count: number
   p50_response_ms: number | null
   p99_response_ms: number | null
+}
+
+const STATUS_GROUPS = [
+  { name: "2xx", color: ChartPalette.semantic("Success", true) },
+  { name: "3xx", color: ChartPalette.semantic("Neutral", true) },
+  { name: "4xx", color: ChartPalette.semantic("Warning", true) },
+  { name: "5xx", color: ChartPalette.semantic("Attention", true) },
+  { name: "No response", color: ChartPalette.semantic("Disabled", true) },
+]
+
+function classifyStatus(code: number | null): string {
+  if (code == null) return "No response"
+  if (code >= 500) return "5xx"
+  if (code >= 400) return "4xx"
+  if (code >= 300) return "3xx"
+  if (code >= 200) return "2xx"
+  return "No response"
+}
+
+function statusCodeSeries(checks: Check[]) {
+  const hour = 3_600_000
+  const end = Math.floor(Date.now() / hour) * hour
+  const start = end - 23 * hour
+  const buckets = Array.from({ length: 24 }, () => new Map<string, number>())
+  for (const check of checks) {
+    const index = Math.floor((Date.parse(check.checked_at) - start) / hour)
+    if (index < 0 || index >= 24) continue
+    const key = classifyStatus(check.status_code)
+    buckets[index].set(key, (buckets[index].get(key) ?? 0) + 1)
+  }
+  return STATUS_GROUPS.map((group) => ({
+    name: group.name,
+    color: group.color,
+    data: buckets.map((bucket, index) => [start + index * hour, bucket.get(group.name) ?? 0] as [number, number]),
+  }))
 }
 
 const EMPTY_STATE_STYLE =
@@ -106,10 +141,13 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
 
   const traffic: [number, number][] = metrics.map((m) => [Date.parse(m.period_start), m.requests_count])
 
+  const statusSeries = statusCodeSeries(checks)
+
   const hasResponseData = responseTime.length > 0
   const hasErrorData = errorRate.length > 0
   const hasLatencyData = p50.length > 0 || p99.length > 0
   const hasTrafficData = traffic.length > 0
+  const hasStatusData = checks.length > 0
 
   const uptimePct = project.uptime_24h_percent ?? 100
   const uptimeText = uptimePct === 100 || Number.isInteger(uptimePct) ? `${Math.round(uptimePct)}%` : `${uptimePct.toFixed(1)}%`
@@ -175,6 +213,51 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
                 : `No response time data available for ${project.name} over the last 24 hours`
             }
           />
+        </Panel>
+
+        {/* Status code distribution */}
+        <Panel className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">Status codes · last 24h</h2>
+            <p className="text-[10px] text-[var(--color-muted)]">
+              {hasStatusData ? `${checks.length} checks` : "No checks yet"}
+            </p>
+          </div>
+          {!hasStatusData ? (
+            <div className={EMPTY_STATE_STYLE}>
+              <div className="text-base font-semibold text-[var(--color-text)]">No checks yet</div>
+              <div className="mt-1 text-sm text-[var(--color-muted)]">
+                Status codes appear after the first check.
+              </div>
+            </div>
+          ) : (
+            <Chart
+              echarts={echarts}
+              isDarkMode
+              height={280}
+              options={{
+                aria: {
+                  enabled: true,
+                  label: {
+                    description: `Status code distribution for ${project.name} over the last 24 hours`,
+                  },
+                },
+                grid: { left: 8, right: 8, top: 34, bottom: 8, containLabel: true },
+                legend: { top: 0 },
+                tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+                xAxis: { type: "time" },
+                yAxis: { type: "value", minInterval: 1, name: "checks" },
+                series: statusSeries.map((series) => ({
+                  name: series.name,
+                  type: "bar" as const,
+                  stack: "total",
+                  data: series.data,
+                  itemStyle: { color: series.color },
+                  barMaxWidth: 20,
+                })),
+              }}
+            />
+          )}
         </Panel>
 
         {/* Latency p50/p99 chart */}
