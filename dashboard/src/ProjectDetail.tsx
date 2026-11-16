@@ -10,10 +10,25 @@ import type { Project } from "./types"
 import UptimeStrip from "./UptimeStrip"
 
 type Check = { checked_at: string; response_time_ms: number | null }
-type Metric = { period_start: string; requests_count: number; error_count: number }
+type Metric = {
+  period_start: string
+  requests_count: number
+  error_count: number
+  p50_response_ms: number | null
+  p99_response_ms: number | null
+}
 
 const EMPTY_STATE_STYLE =
   "py-16 px-4 text-center border-2 border-dashed border-[var(--color-border)] rounded-md bg-[var(--color-panel)]"
+
+function NoAnalytics({ text }: { text: string }) {
+  return (
+    <div className={EMPTY_STATE_STYLE}>
+      <div className="text-base font-semibold text-[var(--color-text)]">No Cloudflare analytics yet.</div>
+      <div className="mt-1 text-sm text-[var(--color-muted)]">{text}</div>
+    </div>
+  )
+}
 
 export default function ProjectDetail({ projectId }: { projectId: number }) {
   const [project, setProject] = useState<Project | null>(null)
@@ -81,8 +96,20 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
     .filter((m) => m.requests_count > 0)
     .map((m) => [Date.parse(m.period_start), Math.round((m.error_count / m.requests_count) * 10000) / 100])
 
+  const p50: [number, number][] = metrics
+    .filter((m) => m.p50_response_ms != null)
+    .map((m) => [Date.parse(m.period_start), m.p50_response_ms as number])
+
+  const p99: [number, number][] = metrics
+    .filter((m) => m.p99_response_ms != null)
+    .map((m) => [Date.parse(m.period_start), m.p99_response_ms as number])
+
+  const traffic: [number, number][] = metrics.map((m) => [Date.parse(m.period_start), m.requests_count])
+
   const hasResponseData = responseTime.length > 0
   const hasErrorData = errorRate.length > 0
+  const hasLatencyData = p50.length > 0 || p99.length > 0
+  const hasTrafficData = traffic.length > 0
 
   const uptimePct = project.uptime_24h_percent ?? 100
   const uptimeText = uptimePct === 100 || Number.isInteger(uptimePct) ? `${Math.round(uptimePct)}%` : `${uptimePct.toFixed(1)}%`
@@ -150,6 +177,55 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
           />
         </Panel>
 
+        {/* Latency p50/p99 chart */}
+        <Panel className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">Latency p50 / p99 · last 7 days</h2>
+            <p className="text-[10px] text-[var(--color-muted)]">
+              {hasLatencyData ? `${p50.length} samples` : "No latency data yet"}
+            </p>
+          </div>
+          {!hasLatencyData ? (
+            <NoAnalytics text="Edge latency comes from zone HTTP analytics. Worker projects report request counts only." />
+          ) : (
+            <TimeseriesChart
+              echarts={echarts}
+              isDarkMode
+              data={[
+                { name: "p50 (ms)", data: p50, color: ChartPalette.categorical(0, true) },
+                { name: "p99 (ms)", data: p99, color: ChartPalette.categorical(3, true) },
+              ]}
+              yAxisName="ms"
+              tooltipValueFormat={(value) => `${Math.round(value)} ms`}
+              ariaDescription={`p50 and p99 latency history for ${project.name} over the last 7 days, measured in milliseconds`}
+            />
+          )}
+        </Panel>
+
+        {/* Traffic chart */}
+        <Panel className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
+            <h2 className="text-sm font-semibold text-[var(--color-text)]">Requests · last 7 days</h2>
+            <p className="text-[10px] text-[var(--color-muted)]">
+              {hasTrafficData ? `${traffic.length} samples` : "No traffic data yet"}
+            </p>
+          </div>
+          {!hasTrafficData ? (
+            <NoAnalytics text="Connect a token with Account Analytics → Read to see request volume." />
+          ) : (
+            <TimeseriesChart
+              echarts={echarts}
+              isDarkMode
+              type="bar"
+              data={[{ name: "Requests", data: traffic, color: ChartPalette.categorical(0, true) }]}
+              yAxisName="requests"
+              yAxisMinInterval={1}
+              tooltipValueFormat={(value) => value.toLocaleString()}
+              ariaDescription={`Request volume history for ${project.name} over the last 7 days`}
+            />
+          )}
+        </Panel>
+
         {/* Error rate chart */}
         <Panel className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
@@ -159,14 +235,7 @@ export default function ProjectDetail({ projectId }: { projectId: number }) {
             </p>
           </div>
           {!hasErrorData ? (
-            <div className="py-16 px-4 text-center border-2 border-dashed border-[var(--color-border)] rounded-md bg-[var(--color-panel)]">
-              <div className="text-base font-semibold text-[var(--color-text)]">
-                No Cloudflare analytics yet.
-              </div>
-              <div className="mt-1 text-sm text-[var(--color-muted)]">
-                Connect a token with Account Analytics → Read to see error rates.
-              </div>
-            </div>
+            <NoAnalytics text="Connect a token with Account Analytics → Read to see error rates." />
           ) : (
             <TimeseriesChart
               echarts={echarts}
